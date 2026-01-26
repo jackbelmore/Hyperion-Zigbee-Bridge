@@ -1,0 +1,38 @@
+{
+    "hyperion_url": "ws://127.0.0.1:8090/json-rpc",
+    "mqtt_broker": "127.0.0.1",
+    "mqtt_port": 1883,
+    "throttle_interval": 1.0,
+    "transition_time": 0.1,
+    "color_warmth": 1.5,
+    "recent_colors": [
+        "#FF0000",
+        "#00FF00",
+        "#0000FF",
+        "#FF00FF",
+        "#FFFF00"
+    ],
+    "devices": [
+        {
+            "name": "Gledopto LED Strip",
+            "topic": "zigbee2mqtt/Gledopto LED Strip/set",
+            "brightness_multiplier": 0.05,
+            "enabled": true,
+            "type": "rgb"
+        },
+        {
+            "name": "Tradfri Desk Light",
+            "topic": "zigbee2mqtt/Tradfri/set",
+            "brightness_multiplier": 1.0,
+            "enabled": false,
+            "type": "rgb"
+        },
+        {
+            "name": "Aqara Ceiling Light",
+            "topic": "zigbee2mqtt/Aqara/set",
+            "brightness_multiplier": 1.0,
+            "enabled": false,
+            "type": "cct"
+        }
+    ]
+}
