@@ -1,2 +1,6 @@
 websocket-client
 paho-mqtt
+pystray
+Pillow
+customtkinter
+CTkColorPicker
