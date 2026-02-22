@@ -18,7 +18,8 @@ import os
 # CONFIGURATION
 # ============================================================================
 
-CONFIG_FILE = "C:\\Users\\Box\\bridge_config.json"
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+CONFIG_FILE = os.path.join(SCRIPT_DIR, "bridge_config.json")
 config = {}
 last_config_load = 0
 
@@ -174,7 +175,8 @@ def mqtt_publish_color(r, g, b):
         transition_time = config.get("transition_time", 0.1)
 
         for device in devices:
-            if not device.get("enabled", True):
+            # Check both sync-enabled and physical-power-state
+            if not device.get("enabled", True) or not device.get("physical_state", True):
                 continue
             
             topic = device.get("topic")

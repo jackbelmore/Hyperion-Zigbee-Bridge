@@ -1,16 +1,20 @@
 # Hyperion Zigbee Bridge & Command Center
 
-A Vaporwave-styled dashboard and bridge to sync your Zigbee lights (via Zigbee2MQTT) with Hyperion screen capture.
+A Vaporwave-styled dashboard and bridge to sync your Zigbee RGB lights (via Zigbee2MQTT) with Hyperion screen capture. Features real-time color synchronization, manual override controls, and a retro cyberpunk interface.
 
-![Vaporwave UI](https://via.placeholder.com/600x400?text=Hyperion+Command+Center)
+![Hyperion Command Center Dashboard](hyperion_dashboard.png)
 
 ## Features
 
-- **Real-time Sync:** Syncs Zigbee RGB lights with your screen content via Hyperion.
-- **Deep Warmth Mode:** Intelligent algorithm to shift colors to deep orange/red for a cozy atmosphere.
-- **Hybrid Control:** Toggle individual lights between "Sync Mode" and "Manual Mode".
-- **Manual Override:** Control brightness and color (RGB or Temp) for lights not currently syncing.
-- **Retro UI:** A custom Vaporwave/Cyberpunk dashboard built with Tkinter.
+- **🎨 Real-time Color Sync:** Automatically syncs Zigbee RGB lights with your screen content via Hyperion.NG ambient color capture
+- **🔥 Deep Warmth Mode:** Intelligent color-shifting algorithm that transitions colors to deep orange/red tones for a cozy, warm atmosphere
+- **🎛️ Hybrid Light Control:** Toggle individual lights between automatic sync and manual control modes
+- **💡 Per-Light Brightness Control:** Adjust brightness multipliers for each light (0-100%, hardware max override)
+- **🌈 Manual Override:** Full manual control when needed - set custom RGB colors, color temperature (CCT), or brightness
+- **⚡ Preset Scenes:** Quick-access scene buttons (READ, DAY, MOVIE, NIGHT) with pre-configured color profiles
+- **🎮 Vaporwave Dashboard:** Custom retro cyberpunk UI built with CustomTkinter featuring cyan/pink neon styling
+- **📊 Real-time Status:** Visual indicators for bridge and Hyperion connection status
+- **⚙️ Configurable Throttling:** Adjust color update frequency to balance responsiveness vs. MQTT load
 
 ## Prerequisites
 
@@ -18,56 +22,98 @@ A Vaporwave-styled dashboard and bridge to sync your Zigbee lights (via Zigbee2M
 - **Zigbee2MQTT** (Mosquitto broker on port 1883)
 - **Python 3.10+**
 
+## Prerequisites
+
+- **Hyperion.NG** (v0.13+) - Ambient lighting capture tool running on port 8090
+- **Zigbee2MQTT** - Zigbee device bridge with Mosquitto MQTT broker on port 1883
+- **Python 3.10+** - For running the dashboard and bridge
+- **Zigbee RGB/CCT Lights** - Compatible devices (tested with Gledopto, Tradfri, Aqara)
+
 ## Installation
 
-1. Clone the repo:
+1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/Hyperion-Zigbee-Bridge.git
+   git clone https://github.com/jackbelmore/Hyperion-Zigbee-Bridge.git
    cd Hyperion-Zigbee-Bridge
    ```
 
-2. Install dependencies:
+2. Install Python dependencies:
    ```bash
    pip install -r requirements.txt
    ```
 
-3. Setup Config:
-   Copy `bridge_config.example.json` to `bridge_config.json` and update with your device topics.
+3. Configure your setup:
+   ```bash
+   cp bridge_config.example.json bridge_config.json
+   ```
+   Edit `bridge_config.json` with your:
+   - Zigbee2MQTT device topics
+   - Hyperion WebSocket URL (default: ws://127.0.0.1:8090/json-rpc)
+   - MQTT broker address and credentials (if needed)
 
-## Usage
+## Quick Start
 
-**Launch the Command Center:**
-Double-click `launch_hyperion.bat` or run:
+**Windows (Easiest):**
+```bash
+Double-click launch_hyperion.bat
+```
+
+**Command Line:**
 ```bash
 python hyperion_command_center.py
 ```
 
-### Dashboard Controls
-- **Start System:** Launches the background bridge process.
-- **Sync Config:** Enable/Disable lights for sync. Sliders control max brightness *during* sync.
-- **Manual Control:** Control lights that are disabled in Sync Config.
-- **Settings:** Adjust the "Warmth" intensity and sync throttle rate.
+### Dashboard Layout
 
-## Configuration
+**Left Sidebar:**
+- **BRIDGE STATUS** - Connection status to Zigbee2MQTT
+- **HYPERION STATUS** - Connection status to Hyperion.NG
+- **Navigation Menu** - Dashboard, Manual Override, Settings
+- **Arcade Mode** - Activates preset scene buttons
+- **Initiate Link** - Manual device linking (if needed)
 
-Edit `bridge_config.json` manually or via the UI.
+**Main Area - Light Control:**
+- **Sync Toggle** - Enable/disable automatic color sync per light
+- **Brightness Slider** - Adjust max brightness during sync mode
+- **Brightness ⚠️ Badge** - Shows if light is at hardware max
+- **Manual Color Control** - When light is disabled from sync (if applicable)
+
+**Preset Scenes (Bottom):**
+Quick-access buttons for pre-configured lighting scenes (READ, DAY, MOVIE, NIGHT)
+
+### Configuration
+
+Edit `bridge_config.json` to customize:
 
 ```json
 {
+    "hyperion_url": "ws://127.0.0.1:8090/json-rpc",
+    "mqtt_broker": "127.0.0.1",
+    "mqtt_port": 1883,
+    "throttle_interval": 0.6,
+    "color_warmth": 3.0,
     "devices": [
         {
             "name": "Desk Light",
             "topic": "zigbee2mqtt/Desk/set",
-            "brightness_multiplier": 1.0,
+            "brightness_multiplier": 0.8,
             "type": "rgb"
         }
     ]
 }
 ```
 
-- **type:** `rgb` or `cct` (for temperature-only lights).
-- **brightness_multiplier:** `1.0` (100%), `0.5` (50%), or `-1` (Force Hardware Max).
+**Configuration Options:**
+- `throttle_interval` - Seconds between color updates (lower = more responsive, higher = less MQTT traffic)
+- `color_warmth` - Intensity of deep warmth mode (0.0 = off, 5.0+ = very warm)
+- `brightness_multiplier` - Max brightness for this light (1.0 = 100%, 0.5 = 50%, -1 = hardware max)
+- `type` - Light type: `rgb` (full color) or `cct` (color temperature only)
 
 ## License
 
-MIT
+MIT License - See LICENSE file for details.
+
+## Support
+
+For issues, feature requests, or questions, please open an issue on GitHub.
+

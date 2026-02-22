@@ -1,0 +1,34 @@
+# Local configuration files (contains machine-specific paths and credentials)
+bridge_config.json
+config.json
+
+# Debugging and prompt files
+PROMPT_FOR_GEMINI.md
+TRANSPARENCY_DEBUGGING_LOG.md
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Virtual environments
+venv/
+env/
+ENV/
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Python
+*.egg-info/
+dist/
+build/
