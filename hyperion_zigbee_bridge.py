@@ -11,6 +11,7 @@ import random
 import websocket
 import paho.mqtt.client as mqtt
 from collections import deque
+from typing import Dict, Tuple, List, Any, Optional
 
 import os
 
@@ -23,15 +24,20 @@ CONFIG_FILE = os.path.join(SCRIPT_DIR, "bridge_config.json")
 config = {}
 last_config_load = 0
 
-def load_config():
-    """Load configuration from JSON file."""
+def load_config() -> bool:
+    """
+    Load configuration from JSON file.
+    
+    Returns:
+        bool: True if config was loaded, False otherwise.
+    """
     global config, last_config_load, mqtt_client
     try:
         # Check if file has changed
         current_mtime = os.path.getmtime(CONFIG_FILE)
         if current_mtime > last_config_load:
             with open(CONFIG_FILE, 'r') as f:
-                new_config = json.load(f)
+                new_config: Dict[str, Any] = json.load(f)
                 config = new_config
                 last_config_load = current_mtime
                 print(f"[Config] Loaded settings from {CONFIG_FILE}")
@@ -70,10 +76,17 @@ stop_event = threading.Event()
 # COLOR CONVERSION UTILITIES
 # ============================================================================
 
-def rgb_to_xy(r, g, b):
+def rgb_to_xy(r: int, g: int, b: int) -> Tuple[float, float, int]:
     """
     Convert RGB (0-255) to XY color space (CIE 1931) for Zigbee lights.
-    Returns (x, y, brightness) tuple.
+    
+    Args:
+        r: Red value (0-255)
+        g: Green value (0-255)
+        b: Blue value (0-255)
+        
+    Returns:
+        Tuple of (x: float, y: float, brightness: int) in Zigbee color space.
     """
     # Normalize RGB values to 0-1
     r = r / 255.0
@@ -110,8 +123,17 @@ def rgb_to_xy(r, g, b):
 # MQTT CLIENT SETUP
 # ============================================================================
 
-def on_mqtt_connect(client, userdata, flags, rc, properties=None):
-    """MQTT connection callback."""
+def on_mqtt_connect(client: mqtt.Client, userdata: Any, flags: Dict, rc: int, properties: Optional[Any] = None) -> None:
+    """
+    MQTT connection callback handler.
+    
+    Args:
+        client: MQTT client instance
+        userdata: User-provided data (unused)
+        flags: Connection flags
+        rc: Return code (0 = success)
+        properties: MQTT v5 properties (optional)
+    """
     global mqtt_connected
     if rc == 0:
         mqtt_connected = True
@@ -121,8 +143,17 @@ def on_mqtt_connect(client, userdata, flags, rc, properties=None):
         print(f"[MQTT] Connection failed with code {rc}")
 
 
-def on_mqtt_disconnect(client, userdata, disconnect_flags, rc, properties=None):
-    """MQTT disconnection callback."""
+def on_mqtt_disconnect(client: mqtt.Client, userdata: Any, disconnect_flags: Any, rc: int, properties: Optional[Any] = None) -> None:
+    """
+    MQTT disconnection callback handler.
+    
+    Args:
+        client: MQTT client instance
+        userdata: User-provided data (unused)
+        disconnect_flags: Disconnection flags
+        rc: Return code (0 = expected disconnect)
+        properties: MQTT v5 properties (optional)
+    """
     global mqtt_connected
     mqtt_connected = False
     if rc != 0:
@@ -137,8 +168,11 @@ mqtt_client.on_disconnect = on_mqtt_disconnect
 mqtt_client._keepalive = 120  # 2 minutes
 
 
-def mqtt_connect():
-    """Establish MQTT connection with retry logic."""
+def mqtt_connect() -> None:
+    """
+    Establish MQTT connection with retry logic.
+    Attempts connection until successful or stop_event is set.
+    """
     while not stop_event.is_set():
         try:
             if not mqtt_connected:
@@ -153,8 +187,15 @@ def mqtt_connect():
             time.sleep(3)
 
 
-def mqtt_publish_color(r, g, b):
-    """Publish color to all configured Zigbee2MQTT lights with individual brightness settings."""
+def mqtt_publish_color(r: int, g: int, b: int) -> None:
+    """
+    Publish color to all configured Zigbee2MQTT lights with individual brightness settings.
+    
+    Args:
+        r: Red value (0-255)
+        g: Green value (0-255)
+        b: Blue value (0-255)
+    """
     global mqtt_client, mqtt_connected, config
 
     # Check for config updates
