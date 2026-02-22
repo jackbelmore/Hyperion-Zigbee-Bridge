@@ -4,6 +4,19 @@ A Vaporwave-styled dashboard and bridge to sync your Zigbee RGB lights (via Zigb
 
 ![Hyperion Command Center Dashboard](hyperion_dashboard.png)
 
+## What It Does
+
+**Simple explanation:** This app automatically controls your smart lights to match colors from your screen. For example, if you're watching a movie with dark scenes, your lights get darker and match the movie's color palette. You can also manually control lights with a beautiful retro dashboard.
+
+**Use cases:**
+- 🎬 Sync room lighting with movies/games for immersive experience
+- 📚 Ambient reading mode for focused work
+- 🎮 Dynamic lighting that responds to screen content
+- 🌙 Manual light control with preset scenes (Day, Night, Movie, Read)
+- ☀️ Smart warmth adjustments (shift to orange/red for cozy ambiance)
+
+**Compatible with:** Windows, Linux, macOS (requires Python 3.10+, Hyperion.NG, Zigbee2MQTT)
+
 ## Features
 
 - **🎨 Real-time Color Sync:** Automatically syncs Zigbee RGB lights with your screen content via Hyperion.NG ambient color capture
@@ -18,16 +31,12 @@ A Vaporwave-styled dashboard and bridge to sync your Zigbee RGB lights (via Zigb
 
 ## Prerequisites
 
-- **Hyperion.NG** (Running on port 8090)
-- **Zigbee2MQTT** (Mosquitto broker on port 1883)
-- **Python 3.10+**
-
-## Prerequisites
-
 - **Hyperion.NG** (v0.13+) - Ambient lighting capture tool running on port 8090
 - **Zigbee2MQTT** - Zigbee device bridge with Mosquitto MQTT broker on port 1883
 - **Python 3.10+** - For running the dashboard and bridge
 - **Zigbee RGB/CCT Lights** - Compatible devices (tested with Gledopto, Tradfri, Aqara)
+
+> 💡 **New users:** See [Platform-Specific Setup](#platform-specific-setup) at the bottom for detailed installation instructions for your OS.
 
 ## Installation
 
@@ -58,10 +67,12 @@ A Vaporwave-styled dashboard and bridge to sync your Zigbee RGB lights (via Zigb
 Double-click launch_hyperion.bat
 ```
 
-**Command Line:**
+**Command Line (All Platforms):**
 ```bash
 python hyperion_command_center.py
 ```
+
+> 💡 **First time?** You'll need to install prerequisites first. See [Platform-Specific Setup](#platform-specific-setup) below.
 
 ### Dashboard Layout
 
@@ -109,11 +120,128 @@ Edit `bridge_config.json` to customize:
 - `brightness_multiplier` - Max brightness for this light (1.0 = 100%, 0.5 = 50%, -1 = hardware max)
 - `type` - Light type: `rgb` (full color) or `cct` (color temperature only)
 
+For issues, feature requests, or questions, please open an issue on GitHub.
+
 ## License
 
 MIT License - See LICENSE file for details.
 
-## Support
+---
 
-For issues, feature requests, or questions, please open an issue on GitHub.
+## Platform-Specific Setup
+
+### Windows PowerShell Setup
+
+Run these commands in PowerShell to set up Hyperion, MQTT broker, and the application:
+
+```powershell
+# 1. Download and install Hyperion.NG
+Write-Host "Downloading Hyperion.NG..."
+$hyperionUrl = "https://github.com/hyperion-project/hyperion.ng/releases/download/2.0.14/Hyperion-2.0.14-Windows-installer.exe"
+$hyperionPath = "$env:TEMP\Hyperion-installer.exe"
+Invoke-WebRequest -Uri $hyperionUrl -OutFile $hyperionPath
+Start-Process -FilePath $hyperionPath -Wait
+Remove-Item $hyperionPath
+
+# 2. Download and install Mosquitto (MQTT Broker)
+Write-Host "Downloading Mosquitto..."
+$mosquittoUrl = "https://mosquitto.org/files/binary/win64/mosquitto-2.0.18-install-windows-x64.exe"
+$mosquittoPath = "$env:TEMP\mosquitto-installer.exe"
+Invoke-WebRequest -Uri $mosquittoUrl -OutFile $mosquittoPath
+Start-Process -FilePath $mosquittoPath -Wait
+Remove-Item $mosquittoPath
+
+# 3. Install Python dependencies
+Write-Host "Installing Python dependencies..."
+pip install -r requirements.txt
+
+# 4. Setup configuration
+Write-Host "Creating configuration file..."
+Copy-Item "bridge_config.example.json" "bridge_config.json"
+Write-Host "Edit bridge_config.json with your Zigbee device topics, then run: python hyperion_command_center.py"
+```
+
+### Linux Bash Setup
+
+Run these commands in Bash to set up Hyperion, MQTT broker, and the application:
+
+```bash
+#!/bin/bash
+
+# 1. Update package manager
+echo "Updating package manager..."
+sudo apt-get update && sudo apt-get upgrade -y
+
+# 2. Install dependencies
+echo "Installing dependencies..."
+sudo apt-get install -y python3 python3-pip git
+
+# 3. Install Mosquitto (MQTT Broker)
+echo "Installing Mosquitto..."
+sudo apt-get install -y mosquitto mosquitto-clients
+sudo systemctl enable mosquitto
+sudo systemctl start mosquitto
+
+# 4. Install Hyperion.NG from source or pre-built
+echo "Installing Hyperion.NG..."
+# Option A: Using pre-built binaries (recommended)
+sudo apt-get install -y hyperion
+
+# Option B: Build from source (if pre-built not available)
+# git clone https://github.com/hyperion-project/hyperion.ng.git
+# cd hyperion.ng && mkdir build && cd build && cmake .. && make && sudo make install
+
+# 5. Clone and setup Hyperion-Zigbee-Bridge
+echo "Setting up Hyperion-Zigbee-Bridge..."
+git clone https://github.com/jackbelmore/Hyperion-Zigbee-Bridge.git
+cd Hyperion-Zigbee-Bridge
+
+# 6. Install Python dependencies
+echo "Installing Python dependencies..."
+pip3 install -r requirements.txt
+
+# 7. Setup configuration
+echo "Creating configuration file..."
+cp bridge_config.example.json bridge_config.json
+echo "Edit bridge_config.json with your Zigbee device topics, then run: python3 hyperion_command_center.py"
+
+# 8. Verify MQTT and Hyperion are running
+echo ""
+echo "✓ Setup complete! Verify services are running:"
+echo "  - MQTT Broker: mosquitto-pub -h localhost -t 'test' -m 'hello'"
+echo "  - Hyperion: Check http://localhost:8090 (web UI)"
+echo "  - App: python3 hyperion_command_center.py"
+```
+
+### macOS Setup
+
+The setup for macOS is similar to Linux, using Homebrew:
+
+```bash
+#!/bin/bash
+
+# 1. Install Homebrew (if not already installed)
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
+# 2. Install dependencies
+brew install python3 mosquitto hyperion
+
+# 3. Start Mosquitto
+brew services start mosquitto
+
+# 4. Clone and setup Hyperion-Zigbee-Bridge
+git clone https://github.com/jackbelmore/Hyperion-Zigbee-Bridge.git
+cd Hyperion-Zigbee-Bridge
+
+# 5. Install Python dependencies
+pip3 install -r requirements.txt
+
+# 6. Setup configuration
+cp bridge_config.example.json bridge_config.json
+echo "Edit bridge_config.json with your Zigbee device topics, then run: python3 hyperion_command_center.py"
+```
+
+---
+
+## Support
 
