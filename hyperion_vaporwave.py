@@ -403,15 +403,34 @@ class VaporwaveApp(ctk.CTk):
         self.check_hyperion_status()
 
     def setup_background(self):
+        """Load and setup background image with proper error handling."""
         if os.path.exists(BG_IMAGE):
             try:
                 self.raw_bg_image = Image.open(BG_IMAGE)
                 self.apply_bg_brightness(self.config.get("bg_brightness", 0.5))
-            except: pass
+                print(f"[UI] Background loaded successfully from {BG_IMAGE}")
+            except Exception as e:
+                print(f"[UI] Warning: Failed to load background: {e}")
+                self.raw_bg_image = None
+        else:
+            print(f"[UI] Background image not found at {BG_IMAGE}")
         self.bind("<Configure>", self.resize_bg)
 
     def apply_bg_brightness(self, val):
-        if not self.raw_bg_image: return
+        """Apply brightness to background image or fallback to solid color."""
+        # Fallback if no image loaded
+        if not self.raw_bg_image:
+            if hasattr(self, 'bg_canvas'):
+                self.bg_canvas.configure(bg=THEME["bg"])
+                self.bg_canvas.delete("all")
+            else:
+                # Create solid color canvas as fallback
+                self.bg_canvas = tk.Canvas(self.main_container, bg=THEME["bg"], highlightthickness=0)
+                self.bg_canvas.place(x=0, y=0, relwidth=1, relheight=1)
+                self.bg_canvas.lower()
+            print("[UI] Using fallback solid background color")
+            return
+            
         enhancer = ImageEnhance.Brightness(self.raw_bg_image)
         dark_img = enhancer.enhance(val)
         # Get current window size or use default
@@ -458,10 +477,18 @@ class VaporwaveApp(ctk.CTk):
         return False
 
     def load_config(self):
+        """Load configuration from JSON file with diagnostics."""
         if os.path.exists(CONFIG_FILE):
-            with open(CONFIG_FILE, 'r') as f:
-                self.config = json.load(f)
+            try:
+                with open(CONFIG_FILE, 'r') as f:
+                    self.config = json.load(f)
+                    device_count = len(self.config.get("devices", []))
+                    print(f"[CONFIG] Loaded config with {device_count} device(s)")
+            except Exception as e:
+                print(f"[CONFIG] Error loading config: {e}. Using defaults.")
+                self.config = {"devices": []}
         else:
+            print(f"[CONFIG] Config file not found at {CONFIG_FILE}. Using defaults.")
             self.config = {"devices": []}
 
     def save_config(self):
@@ -555,9 +582,27 @@ class VaporwaveApp(ctk.CTk):
 
     def show_sync(self):
         self.clear_content()
+        
+        devices = self.config.get("devices", [])
+        if not devices:
+            # Show helpful message if no devices configured
+            msg_frame = ctk.CTkFrame(self.content_area, fg_color="transparent")
+            msg_frame.pack(pady=40, padx=20, fill="both", expand=True)
+            
+            ctk.CTkLabel(msg_frame, text="⚙️ NO DEVICES CONFIGURED", 
+                        font=("Consolas", 16, "bold"), text_color=THEME["cyan"]).pack(pady=10)
+            ctk.CTkLabel(msg_frame, text="Edit bridge_config.json to add your Zigbee lights",
+                        font=("Consolas", 12), text_color=THEME["dim"]).pack(pady=5)
+            ctk.CTkLabel(msg_frame, text="Then restart the application.",
+                        font=("Consolas", 11), text_color=THEME["dim"]).pack(pady=(5, 20))
+            
+            # Still show scenes section
+            self.create_scenes_section()
+            return
+        
         card_bg = self.get_card_color()
         
-        for i, device in enumerate(self.config.get("devices", [])):
+        for i, device in enumerate(devices):
             # Load State
             is_phys_on = device.get("physical_state", True)
             
@@ -815,8 +860,25 @@ class VaporwaveApp(ctk.CTk):
 
     def show_manual(self):
         self.clear_content()
+        
+        devices = self.config.get("devices", [])
+        manual_devices = [d for d in devices if not d.get("enabled", True)]
+        
+        if not manual_devices:
+            # Show helpful message if no manual devices
+            msg_frame = ctk.CTkFrame(self.content_area, fg_color="transparent")
+            msg_frame.pack(pady=40, padx=20, fill="both", expand=True)
+            
+            ctk.CTkLabel(msg_frame, text="✨ NO MANUAL DEVICES", 
+                        font=("Consolas", 16, "bold"), text_color=THEME["cyan"]).pack(pady=10)
+            ctk.CTkLabel(msg_frame, text="All configured lights are in Sync Mode",
+                        font=("Consolas", 12), text_color=THEME["dim"]).pack(pady=5)
+            ctk.CTkLabel(msg_frame, text="Toggle 'Sync' off in the Sync tab to enable manual control.",
+                        font=("Consolas", 11), text_color=THEME["dim"]).pack()
+            return
+        
         card_bg = self.get_card_color()
-        for i, device in enumerate(self.config.get("devices", [])):
+        for i, device in enumerate(manual_devices):
             if device.get("enabled", True): continue
 
             card = ctk.CTkFrame(self.content_area, fg_color=card_bg, corner_radius=10, border_width=1, border_color="#444")
